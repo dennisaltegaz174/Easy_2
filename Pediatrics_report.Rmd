@@ -1,0 +1,112 @@
+---
+title: 'Reduction of waiting time for patients awaiting echo '
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+library(tidyverse)
+```
+
+```{r}
+data_11<- data.frame(quiz1a = c(rep(1,14),rep(2,14),"NA"),
+                   quiz1b = c(rep(1,27),rep(2,2)),
+                   quiz1c = c(rep(1,25),rep(2,4)),
+                   quiz1d = c(rep(1,24),rep(2,5)),
+                   quiz1e = c(rep(1,21),rep(2,8)),
+                   quiz1f = c(rep(1,28),rep(2,1)),
+                   quiz2a = c(rep(1,27),rep(2,2)),
+                   quiz2b = c(rep(1,25),rep(2,4)),
+                   quiz2c = c(rep(1,23),rep(2,4),"NA","NA"),
+                   quiz2d = c(rep(1,20),rep(2,9)),
+                   quiz2e = c(rep(1,19),rep(2,9),"NA"),
+                   quiz2f = c(rep(1,23),rep(2,5),"NA"),
+                   quiz3a = c(rep(1,29),rep(2,0)),
+                   quiz3b = c(rep(1,28),rep(2,1)),
+                   quiz3c = c(rep(1,25),rep(2,3),"NA"))
+```
+
+```{r}
+data_11 %>%
+  gather(key="Questions",value, quiz1a:quiz1f) -> p
+pp<-subset(p, select = c('Questions' , 'value'))
+pp$Questions<-"policy"
+pp<-pp[pp$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz2a:quiz2f) -> h
+hh<-subset(h, select = c('Questions' , 'value'))
+hh$Questions<-"people"
+hh<-hh[hh$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz3a:quiz3c) -> i
+ii<-subset(i, select = c('Questions' , 'value'))
+ii$Questions<-"machine"
+ii<-ii[ii$value==1,]
+
+n<-rbind(pp,hh,ii)
+
+
+ggplot(data=n,aes(x=factor(Questions),y=prop.table(stat(count)),
+                  fill = factor(Questions),
+                  label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  scale_y_continuous(labels = scales::percent)+
+  geom_text(stat = 'count',
+            vjust= -0.5,
+            size= 3)+
+   scale_fill_brewer(palette = "Dark2")+
+  #scale_x_discrete( labels =c("Yes","No"))+
+  labs(x = "Causes of delay",y = "Percentage Proportion",title = "Reduction of waiting time \n for patients awaiting echo")+
+  theme(legend.position = "none",plot.title = element_text(face="bold"))
+```
+
+<br> 
+
+Analysis of data collected on some of the issues the pediatrics Department had identified as causes of delay in echo process had the following results.
+
+**Policy** had the greatest impact on the question under study at **38.83%**.As seen from the above graph **people** came in as the second cause of the delays at an average percentage of **38.27%**.The least  cause of delay was machine at an average percentage of **22.19%**.
+
+The questions that were open for study  are listed below:
+
+**POLICY**
+
+a) I am not aware of the echo booking and procedure work instruction/SOP
+
+b) There is delay in referring patients from peripheral health care facilities hence they come as emergencies and affect those already waiting
+
+c) Multiple investigations required before echo( CXR,ECG etc) leading to delay.
+
+d) Multiple consultations.
+
+e) There is no standardized work instruction for Echo /SDC
+
+f) There are many cardiac patients admitted in other general wards waiting for echo.
+
+**PEOPLE**
+
+a) There are few number of nursing staff on duty for pottering patients
+
+b) There are few cardiologist to screen patients
+
+c) There are few number of personnel trained for echo 
+
+d) No one is allocated to take patients for echo procedure
+
+e) Delay in patient's health seeking behavior
+
+f) Delay in decision making
+
+**MACHINE**
+
+a) Few portable Echo machines.
+
+b) Few portable oxygen cylinders to move patients on oxygen
+
+c) There is only one Pediatrics Echo machine
+

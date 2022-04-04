@@ -1,0 +1,79 @@
+---
+title: "Untitled"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+library(ggplot2)
+df2<-data.frame(category = c("method","place","material","people"),
+                Frequency =c(116,168,183,278))
+ggplot(data=df2,mapping = aes(reorder(x=factor(category),-Frequency),y=prop.table(Frequency),fill=factor(category)))+
+  geom_bar(stat = "identity",position = "dodge")+
+  scale_y_continuous(labels=scales::percent)+
+  geom_text(label = scales::percent(prop.table(df2$Frequency)),vjust=-.2,position = position_dodge(.9))+
+  geom_point(aes(y=prop.table(Frequency)), color = rgb(0, 1, 0), pch=16, size=1) +
+  geom_path(aes(y=prop.table(Frequency), group=1), colour="slateblue1", lty=3, size=0.9) +
+  theme_classic()+
+  scale_fill_viridis_d(name=c("Categories"),option = 'D' , begin = 0.6 ,end = .9)+
+  labs(x="Method",y="Percentage",title = "General Cause of long TAT based on category ")
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+place <-data.frame(quiz=c(rep("2a",3),rep("2b",3),rep("2c",3),rep("2d",3)) ,opnion=rep(c("high","moderate","low"),4),
+                    frequency = c(27,9,10,26,9,12,31,7,7,17,6,7))
+
+ggplot(data=place,aes(x=factor(quiz),y=prop.table(frequency),fill=factor(opnion)))+
+  geom_bar(stat = "identity",position = "dodge")+
+  scale_y_continuous(labels=scales::percent)+
+  geom_text(label = scales::percent(prop.table(place$frequency)),vjust=-.2,position = position_dodge(.9))+
+  theme_classic()+
+  scale_fill_viridis_d(name=c("Opinion scale"),option = "B",begin = .1,end = .5)+
+  labs(x="Method",y="Percentage",title = "Cause of long TAT due to Place/Environment ")
+```
+
+### Chart C
+
+```{r}
+method <-data.frame(quiz=c(rep("1a",3),rep("1b",3),rep("1c",3)) ,opnion=rep(c("high","moderate","low"),3),
+                    frequency = c(27,5,10,26,13,7,10,4,14))
+ggplot(data=method,aes(x=factor(quiz),y=prop.table(frequency),fill=factor(opnion)))+
+  geom_bar(stat = "identity",position = "dodge")+
+  scale_y_continuous(labels=scales::percent)+
+  geom_text(label = scales::percent(prop.table(method$frequency)),vjust=-.2,position = position_dodge(.9))+
+  theme_classic()+
+  scale_fill_viridis_d(name=c("Opinion scale"))+
+  labs(x="Method",y="Percentage",title = "Cause of long TAT due to method")
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart D
+
+```{r}
+
+```
+
+### Chart E
+
+```{r}
+
+```

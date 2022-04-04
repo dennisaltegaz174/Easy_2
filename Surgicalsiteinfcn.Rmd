@@ -1,0 +1,145 @@
+---
+title: "Reduction of Surgical site infection"
+subtitle: Exploratory Data Analysis
+output:
+  word_document:
+    toc: no
+  html_document:
+    df_print: default
+    highlight: tango
+    theme: readable
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+       echo = FALSE,
+       message = FALSE,
+       warning = FALSE
+      )
+library(tidyverse)
+```
+
+```{r}
+data<-read.csv("C:/Users/adm/Desktop/HCQ/Reduction of surgical site infctn.csv")
+```
+
+## Gender
+```{r}
+X=sum(data$Gender==1)
+Y=sum(data$Gender==2)
+```
+
+```{r}
+ggplot(data,aes(x=factor(Gender),fill=factor(Gender)))+
+  geom_bar()+
+  theme_classic()+
+  labs(x="Gender",title="GENDER DISTRIBUTION OF PATIENTS")+
+  theme(legend.position = "none",plot.title = element_text(color = "blue",face = "bold"))+
+  scale_fill_viridis_d()+
+  scale_x_discrete(labels=c("Male","Female"))
+  
+```
+
+From the above plots more males account for the abdominal surgeries in comparison to females.
+
+## Type of surgery
+
+```{r}
+ggplot(data = data,aes(x=factor(Typeofsurgery),y=prop.table(stat(count)),
+                         fill=factor(Typeofsurgery),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   labs(x="Type of Surgery",y="Percentage Frequency",title="TYPE OF SURGERY",fill="Type of Surgery")+
+   theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_fill_discrete()+
+   scale_x_discrete(labels=c("Elective","Emergency"))
+```
+
+<br>
+
+Looking at the bar plots above  a majority of patients were taken in for an `emergency` surgery.This accounted for **93%**. Only **7%**of the patients had an `elective` surgery.
+
+
+## Where the pre-operative care was done.
+
+```{r}
+ggplot(data = data,aes(x=factor(Wherepreoperative),
+                       y=prop.table(stat(count)),
+                         fill=factor(Wherepreoperative),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d(begin=0, end = .95,option='D')+
+   scale_x_discrete(labels=c("Ward","A & E"))+
+   labs(x="Where preoperative care was done",y="Percentage Frequency",title="WHERE PREOPERATIVE CARE WAS DONE")+
+   theme(legend.position = "none",plot.title = element_text(face = "bold"))
+   
+```
+From the above graph `71% ` of pre-operative care was done in the *wards* and `29%` in  *Accidents and emergency* .
+
+## Surgical Technique
+
+```{r}
+ggplot(data = data,aes(x=factor(Surgicaltech),
+                       y=prop.table(stat(count)),
+                         fill=factor(Surgicaltech),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d(begin=0, end = .95,option='D')+
+   scale_x_discrete(labels=c("Laparatomy","Laparascopy"))+
+   labs(x="Where preoperative care was done",y="Percentage Frequency",title="Surgical Technique")+
+   theme(legend.position = "none",plot.title = element_text(face = "bold"))
+
+```
+
+For all the patients the surgical techniques undertaken were laparotomy.
+
+<br>
+
+## Was Prophylatic antibiotic given?
+
+```{r}
+data_1<-data.frame(druggvn=c("yes","no"),values =c(14,0))
+
+ggplot(data = data_1,aes(x = factor(druggvn),y=prop.table(values),fill=factor(druggvn)))+
+  geom_bar(stat = "identity")+
+  geom_text(label = scales::percent(prop.table(data_1$values)),vjust = -0.1)+
+  scale_y_continuous(labels=scales::percent)+
+  theme(legend.position = 'none', plot.title = element_text(face="bold"))+
+  labs(x="Was Prophylactic antibiotic given?", y= 'Percentage proportion',title="PROPHYLACTIC DRUG GIVEN OR NOT")
+```
+
+**100%** of the patients were given `prophylactic` drugs as seen from the above graph.
+
+## What type of antimicrobial agent was given
+
+```{r}
+data_2 <- data.frame(agent =c("Cefazoline","Cefuroxime","Ceftriaxone","Vancomycin","Ceftazidime",
+                              "Amoxicillin clavulanic acid","Metronidazole","Other (specify)"),values=c(13,0,1,0,0,0,0,0))
+
+ggplot(data = data_2,aes(x = factor(agent),y=prop.table(values),fill=factor(agent)))+
+  geom_bar(stat = "identity")+
+  geom_text(label = scales::percent(prop.table(data_2$values)),vjust = -0.1)+
+  scale_y_continuous(labels=scales::percent)+
+  theme(legend.position = 'none',axis.text.x =  element_text(angle=45, vjust=1, hjust=1),plot.title = element_text(face="bold"))+
+  labs(x="Type of antimicrobial agent ", y= 'Percentage proportion',title = "Distribution of Antimicrobial agent given")
+
+```
+
+92.9% of patients were administered with *cefazoline* with 7.1% being administered  *cetriaxone*.
+

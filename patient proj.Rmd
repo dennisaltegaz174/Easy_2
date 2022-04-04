@@ -1,0 +1,165 @@
+---
+title: "Untitled"
+author: "Dennis Mugendi"
+date: "08/02/2022"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r,warning=FALSE,message=FALSE}
+library(tidyverse)
+```
+
+
+```{r}
+library(readxl)
+dataz<-read_excel("C://Users//adm//Downloads//medical error  2nd quater fy 2021 2022.xls")
+data1 <-subset(dataz,N4PATIENTL=="WARD 7A")
+data2 <-subset(dataz,N4PATIENTL=="WARD 7B")
+data3 <-subset(dataz,N4PATIENTL=="WARD 7C")
+data4 <- subset(dataz,N4PATIENTL=="WARD 7D")
+data5 <- subset(dataz,N4PATIENTL=="WARD 8A")
+data6 <- subset(dataz,N4PATIENTL=="WARD 8B")
+data7 <- subset(dataz,N4PATIENTL=="WARD 8C")
+data8 <- subset(dataz,N4PATIENTL=="WARD 8D")
+data9 <- subset(dataz,N4PATIENTL=="MOPC")
+medicine <-rbind(data1,data2,data3,data4,data5,data6,data7,data8,data9)
+```
+
+# INTRODUCTION
+	
+Health Care Quality department is mandated to receive medical error report from service providers, and frontline workers from various departments. 
+ A medical error (ME) is any preventable event that may cause or lead to inappropriate medication use or patient harm. This is a voluntary reporting system and has a principal role in appreciating the extent and impact of medication errors. To improve patient safety, it is necessary to understand the frequency, seriousness, and causes of medical errors, hence the main aim of the analysis was to identify and find out the most reported /occurring medical error cases, received at the department from different clinical areas, with an aim of developing a systemic approach to make clinical practice safer, balanced accountability, and enhance patient safety culture change with an aim of giving feedback to improving the services offered.
+
+The department undertook communication /sensitization activities, root cause analysis and has continued to build a culture of safety and create awareness on patient safety-medical error among 
+
+ Below is a report of the patient safety –medical error activities carried out in the department during the contract period financial year 2021/ 2022.
+
+
+
+The report is as follows;
+
+## SUMMARY MEDICAL ERRORS REPORT 
+
+PERIOD: Medical Errors reported for the 2021/2022 financial year. The following were the findings.
+
+NUMBER OF MEDICAL ERRORS TOOL FORM RECEIVED:  104  
+
+NUMBER OF ERRORS REPORTED:    218
+
+| Time of Error | Frequency   | % Total |
+|---------------|-------------|---------|
+|6:00 AM - 6:00 PM9 (DAY)  |38   |36.54%|
+|6:00  PM - 6:00 AM (NIGHT)|50   |48.08%|
+|UNSPECIFIED TIME  |16   |15.38%  |
+|Sum |104 |100:00%|
+
+```{r}
+# Data frame of Patients Frequency
+freq <-  data.frame(TIME_OF_ERROR = c("6:00 AM - 6:00 PM9 (DAY)",
+                                      "6:00  PM - 6:00 AM (NIGHT)","UNSPECIFIED TIME"),
+                    FREQUENCY = c(5,8,1),"Percentage_Total" = c(35.71,57.14,7.14) )
+```
+
+
+```{r}
+ggplot(data=freq,aes(x=factor(TIME_OF_ERROR),y=prop.table(FREQUENCY) ,fill=factor(TIME_OF_ERROR)))+
+  geom_bar(stat='identity')+
+  labs(x="Time of error",y="Percentage",title = "Medicine Errors")+
+  theme(legend.position = 'none')+
+  geom_text(label = scales::percent(prop.table(freq$FREQUENCY)),vjust=.1)+
+  scale_y_continuous(labels = scales::percent)
+```
+
+## 2. GENDER OF THE RESPONDENTS.
+
+The table and graph below shows the distribution of medical errors based on gender. The gender of the patients was distributed as follows.
+A half of the patients from whom the error occurred
+`((nrow(medicine[medicine$N8GENDER=='1'&!is.na(medicine$N8GENDER),]))/nrow(medicine)*100)` % (n=5) were males while `((nrow(medicine[medicine$N8GENDER=='2' &  !is.na(medicine$N8GENDER),]))/nrow(medicine)*100)` % (n=7) of the patients were females. Unspecified gender made      `(nrow(medicine[is.na(medicine$N8GENDER),]))/nrow(medicine)*100`  % (n=2) of the total.
+
+
+
+|               | Frequency   |         |
+|---------------|-------------|---------|
+|Valid   |Male            |   5     |  35.71% |
+|        |Female          |   7     |  50.00% |
+|Missing |MISSING IDENTITY|   2     |  14.29% |
+|Total   |   | 14 | 100% |
+
+
+```{r}
+gender <-data.frame(Gender =c("male","female","missidentity"),
+                    Frequency =c(55,41,8))
+ggplot(data=gender ,aes(x=factor(Gender),y=prop.table(Frequency),fill=factor(Gender)))+
+  geom_bar(stat = "identity")+
+  scale_y_continuous(labels = scales::percent)+
+  geom_text(label = scales::percent(prop.table(gender$Frequency)),vjust=-.1)+
+  scale_fill_viridis_d()+
+  theme_classic()+
+  labs(x="Gender",y="Percentage Frequency",title = "Medicine error based on Gender")+
+  theme(legend.position = "none")
+```
+
+
+# 3. LOCATION AT TIME OF MEDICINE ERROR.
+
+The table and graph below shows the different locations of patients at the time of error. The majority of the patients were in A and E having 46.15% (n=48) when the error occurred  as indicated in the table and graph below.
+
+```{r}
+x<-medicine%>%group_by(N4PATIENTL)%>%count(N4PATIENTL)
+x<-as.data.frame(x)
+names(x)[names(x)=='n']<-"Frequency"
+x$percentage_error <-  paste0(round((x$Frequency /sum(x$Frequency)*100),2),"%")
+```
+```{r}
+knitr::kable(x, align = "lccrr",caption = "Table of location of occurence")
+```
+
+```{r}
+ggplot(data = x,aes(x=factor(N4PATIENTL),y=prop.table(Frequency),fill=factor(N4PATIENTL)))+
+  geom_bar(stat = "identity")+
+  scale_y_continuous(labels = scales::percent)+
+  theme(legend.position = "none")+
+  scale_fill_discrete()+
+  labs(x="Location",y="Percentage error",title ="LOCATION AT TIME OF MEDICINE ERROR" )+
+  geom_text(label = scales::percent(prop.table(x$Frequency)),vjust=.8)
+```
+
+# 4. TYPES OF ERROR BY CATEGORY.
+The following table and graph represent different areas where error was reported categorized generally under the diagnostic, treatment, medication, preventive and other areas which was designated as other errors.
+The table and graph below show the number of reported errors based on the above categories.
+Treatment forms the majority of the errors with 40.37% (n=88) followed by Diagnostic with 27.98% (n=61), Others followed closely by 18.81% (n=41). Preventive errors and Medication error recorded 7.34% (n=16) and 5.50% (n=12) respectively. 218 errors recorded.
+
+```{r}
+diagnostic <- table(unlist(medicine%>%select(contains('N10'))))
+treatment <-table(unlist(medicine %>%select(contains('N11'))))
+medication<-table(unlist(medicine%>%select(contains('N12'))))
+preventive<-table(unlist(medicine%>%select(contains('N13'))))
+others<-table(unlist(medicine%>%select(contains('N14'))))
+result <- data.frame(types_of_error = names(c(diagnostic,treatment,medication,preventive,others)),
+                     Frequency = as.integer(c(diagnostic,treatment,medication,preventive,others)))
+result<- data.frame(types_of_error = c("diagnostic","treatment","medication","preventive","others"),frequency=c(1,3,6,0,6))
+result$percentage_error <-  paste0(round((result$frequency /sum(result$frequency)*100),2),"%")
+```
+
+```{r}
+knitr::kable(result, align = "lccrr",caption = "Table 5; Type of error by category")
+```
+
+
+```{r}
+ggplot(data = result,aes(x=factor(types_of_error),y=prop.table(frequency),fill=factor(types_of_error)))+
+  geom_bar(stat = "identity")+
+  scale_y_continuous(labels = scales::percent)+
+  theme(legend.position = "none")+
+  scale_fill_discrete()+
+  labs(x="Type o error ",y="Percentage error",title ="TYPES OF ERROR BY CATEGORY" )+
+  geom_text(label = scales::percent(prop.table(result$frequency)),vjust=-.2)+
+  scale_fill_viridis_d()
+```
+
+
+
