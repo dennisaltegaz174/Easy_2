@@ -1,0 +1,385 @@
+---
+title: "Customer Satisfaction MOPC"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE,
+                      fig.align = "centre")
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+data<-read.csv("C://Users//adm//Desktop//HCQ//Research dept//MedicalOutpatientCli_DATA_LABELS_2022-03-09_1207.csv")
+```
+
+# Exploratory Data Analysis.
+
+## How  you would rate the following aspects in the clinic today.
+
+###  Cleaniliness.
+```{r fig.cap= "figure 1.1"}
+ggplot(data = data,aes(x=factor(Cleanliness),
+                       y=prop.table(stat(count)),
+                         fill=factor(Cleanliness),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d(begin=0, end = .95,option='D')+
+  labs(x="Cleanliness rating",y="Percentage proportion",title = "Categorizationof cleanliness in the hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+
+The above plot is very effective in showing how cleanliness was rated by different customers in the hospital.A majority of the customers that is, 37.61% rated it as **very good**, following closely was **excellent** at 31.19 % . **Neutral** came in third at 0.61% and finally those who rated it as fair were 0.31%.There was no customer who rated the hospital cleanliness as poor.
+
+### Customer friendliness.
+```{r fig.cap="Figure 1.2"}
+ggplot(data = data,aes(x=factor(Customer.friendliness),
+                       y=prop.table(stat(count)),
+                         fill=factor(Customer.friendliness),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Dark2")+
+  theme_light()+
+  labs(x="Customer friendliness rating",y="Percentage proportion",title = " Customer friendliness in the hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+```{r eval=FALSE}
+table(data$Customer.friendliness)
+```
+
+Majority of the respondents 34.25% (n=112) termed customer friendliness in the hospital as *very good*,*good* was at 33.94% (n=111). Those who felt customer friendliness was *excellent* accounted for 22.94% (n=75). *Neutral*,*fair* and *poor* came in forth ,fifth and sixth at 4.53%(n=15),2.45% (n=8) and 1.83% (n=6) respectively.
+
+### Security
+```{r fig.cap= "Figure 1.3"}
+ggplot(data = data,aes(x=factor(Security),
+                       y=prop.table(stat(count)),
+                         fill=factor(Security),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Accent")+
+  theme_light()+
+  labs(x="Security rating",y="Percentage proportion",title = " Security in the hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+```{r eval=FALSE}
+table(data$Security)
+```
+In regards to the question of security within the hospital a large number of our respondents 35.78% (n=117) felt that security was **good**. 31.8% (n=104) rated it as **very good**,those that felt it was **excellent** accounted for 22.94% (n=75).**Neutral**, **fair** and **poor** followed each other closely at 2.75%,2.45% and 2.14% respectively. 2.14% (n=7) did not respond to this question.
+
+### Privacy.
+```{r fig.cap= "Figure 1.4"}
+ggplot(data = data,aes(x=factor(Privacy),
+                       y=prop.table(stat(count)),
+                         fill=factor(Privacy),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Paired")+
+  theme_update()+
+  labs(x="Privacy rating",y="Percentage proportion",title = " Privacy rating in the hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+```{r eval=FALSE}
+table(data$Privacy)
+```
+
+
+A large percentage of  respondents 43.4% (n=142) rated customer privacy as **excellent**,24.8% felt it was **very good** (n=81). Those who termed customer privacy as *good* accounted for 21.7% (n=71).**Neutral**and **fair**  tied at 4% and *poor* came in last at 2.1%(n=7).
+
+
+## Did the doctor talk to you in a courteous manner? 
+
+```{r fig.cap="figure 2"}
+ggplot(data = data,aes(x=factor(Did.the.doctor.talk.to.you.in.a.courteous.manner.),
+                       y=prop.table(stat(count)),
+                         fill=factor(Did.the.doctor.talk.to.you.in.a.courteous.manner.),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Accent")+
+  theme_light()+
+  labs(x="Did the doctor talk to you in a courteous manner?",y="Percentage proportion",title = " ")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+```{r eval=FALSE}
+table(data$Did.the.doctor.talk.to.you.in.a.courteous.manner.)
+
+```
+
+From figure 2 above it is evident that 99% (n=324)of the respondents felt that the the doctor talked to them in a courteous manner. Only 1% (n=3) of the respondents felt otherwise.
+
+## During triage were you handled courteously? 
+```{r fig.cap= "Figure 3"}
+ggplot(data = data,aes(x = factor(During.triage.were.you.handled.courteously.),
+                       y = prop.table(stat(count)),
+                       fill= factor(During.triage.were.you.handled.courteously.),
+                       label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  scale_y_continuous(labels = scales::percent)+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  labs(x = "During triage were you handled courteously",y = "percentage proportion",title = "Whether customer was handled courteously ")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"),)+
+  scale_fill_brewer(palette = "Dark2")+
+  scale_x_discrete(labels = c("Did not respond","No","Yes"))
+
+```
+```{r eval=FALSE}
+table(data$During.triage.were.you.handled.courteously.)
+
+```
+
+Majority of the respondents, 92.7% (n= 303) in the study question (*During triage were you handled courteously?*) were of the opinion that they were handled courteously during the triage.2.1% (n=7) felt that they were not handled courteously and 5.2% (n=17) did not  give their opinion in regards to this question.
+
+
+
+## Did the nurse explain the procedure above before performing it? 
+```{r fig.cap="Figure 4" }
+ggplot(data = data,aes(x=factor(Did.the.nurse.explain.the.procedure.above.before.performing.it.),
+                       y=prop.table(stat(count)),
+                         fill=factor(Did.the.nurse.explain.the.procedure.above.before.performing.it.),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Set2")+
+  theme_light()+
+  labs(x="Did the nurse explain the procedure above before performing it?",y="Percentage proportion",title = "Whether the Nurse explained procedure \n before performing it ")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","No","Yes"))
+```
+```{r eval=FALSE}
+table(data$Did.the.nurse.explain.the.procedure.above.before.performing.it.)
+```
+Figure 4 above shows that 64% (n=208) of the respondents were explained to the above procedure by the nurse before it was performed.31% (n=102) were not explained to the procedure and 5% (n=17) did not respond to this question.
+
+## Were the Health information officers courteous?
+```{r fig.cap= "figure 5" }
+ggplot(data = data,aes(x=factor(Were.the.Health.information.officers.courteous.),
+                       y=prop.table(stat(count)),
+                         fill=factor(Were.the.Health.information.officers.courteous.),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Set3")+
+  theme_light()+
+  labs(x="Were the Health information officers courteous?",y="Percentage proportion",title = "Whether the Health information officers courteous")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","No","Yes"))
+```
+```{r eval=FALSE}
+table(data$Were.the.Health.information.officers.courteous.)
+```
+
+
+92.4% (n=302) of the respondents felt that the Health information officers courteous, 7% (n=23) were of a contrary opinion and 0.6% (n=2) did not respond to this question.
+
+## **How do you rate the length of the following services?**
+### Payment
+
+```{r fig.cap="Figure 6.1" }
+ggplot(data = data,aes(x=factor(Payment),
+                       y=prop.table(stat(count)),
+                         fill=factor(Payment),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Dark2")+
+  theme_light()+
+  labs(x="Customer rating of the length of paymet",y="Percentage proportion",title = "Rating of the length of paymet")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+```{r eval=FALSE}
+table(data$Payment)
+```
+
+Majority  of the respondents 87% (n=283) were of the opinion that time length at payment met their expectation and 13% (n=43) felt it was too long .This question a 100% response
+
+### Health information
+```{r fig.cap= "Figure 6.2"}
+ggplot(data = data,aes(x=factor(Health.information),
+                       y=prop.table(stat(count)),
+                         fill=factor(Health.information),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Paired")+
+  theme_light()+
+  labs(x="Customer rating of Health information",y="Percentage proportion",title = "Rating of Health information")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+```{r eval=FALSE}
+table(data$Health.information)
+```
+70% (n=230) of the respondents were of the opinion that time spent at health information was as they expected and 29% (n=95) felt it was too long. Only 1% of the respondents did not respond to this question.
+
+
+### Triage
+```{r fig.cap="Figure 6.3"}
+ggplot(data = data,aes(x=factor(Triage),
+                       y=prop.table(stat(count)),
+                         fill=factor(Triage),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Dark2")+
+  theme_light()+
+  labs(x="Customer rating of Triage",y="Percentage proportion",title = "Rating of Triage")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+```{r eval=FALSE}
+table(data$Triage)
+```
+
+Majority of the respondents, 92.7% (n= 303) in the study question (*rate of length at triage*) were of the opinion that the time spent at triage was as expected.1.8% (n=6) felt that it was too long  and 5.5% (n=18) did not  give their opinion in regards to this question.
+
+### Doctor's review
+
+```{r fig.cap="Figure 6.4"}
+ggplot(data = data,aes(x=factor(Doctor.s.review),
+                       y=prop.table(stat(count)),
+                         fill=factor(Doctor.s.review),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_brewer(palette = "Accent")+
+  theme_light()+
+  labs(x="Customer rating of Doctor's review",y="Percentage proportion",title = "Rating of Doctor's review")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+```{r eval=FALSE}
+table(data$Doctor.s.review)
+```
+
+Of all the respondents 85% (n= 277)  were of the opinion that the time spent at at doctors review was as expected.15% (n=49) were of the opinion it was too long  and 0% (n=1) did not  give their opinion in regards to this question.
+
+```{r fig.cap="Figure 6.5"}
+ggplot(data = data,aes(x=factor(Appointment.booking),
+                       y=prop.table(stat(count)),
+                         fill=factor(Appointment.booking),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d()+
+  theme_light()+
+  labs(x="Customer rating of Appointment booking",y="Percentage proportion",title = "Rating of Appointment booking")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))+
+  scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+
+```{r eval=FALSE}
+table(data$Appointment.booking)
+```
+Majority of the respondents, 61% (n= 201) in the study question (*rate of length at triage*) were of the opinion that the time spent at triage was as expected.1.8% (n=6) felt that it was too long  and 5.5% (n=18) did not  give their opinion in regards to this question.
+
+
+
+## In future, would you seek health care services in this hospital?
+
+```{r fig.cap="Figure 7"}
+ggplot(data = data,aes(x=factor(In.future..would.you.seek.health.care.services.in.this.hospital.),
+                       y=prop.table(stat(count)),
+                         fill=factor(In.future..would.you.seek.health.care.services.in.this.hospital.),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d(option = "D",end = .9)+
+  theme_light()+
+  labs(x="In future, would you seek health care services in this hospital",y="Percentage proportion",title = "In future, would you seek \n health care services in this hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+  #scale_x_discrete(labels = c("Did not respond","Expected","Too Long"))
+```
+94% of the respondents felt that in future, would you seek health care services in this hospital while 6% felt they would not seek medication at KNH again
+
+
+
+
+## Would you refer a friend/relative to Kenyatta National Hospital?
+
+```{r fig.cap="Figure 8"}
+ggplot(data = data,aes(x=factor(Would.you.refer.a.friend.relative.to.Kenyatta.National.Hospital.),
+                       y=prop.table(stat(count)),
+                         fill=factor(Would.you.refer.a.friend.relative.to.Kenyatta.National.Hospital.),
+                         label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = 'count',
+            position = position_dodge(.9),
+            vjust= -0.5,
+            size= 3)+
+  scale_y_continuous(labels = scales::percent)+
+   scale_fill_viridis_d(option = "B",begin = 0.3,end = .67)+
+  theme_light()+
+  labs(x="Would you refer a friend/relative to Kenyatta National Hospital",title = "Would you refer a friend/relative \n to Kenyatta National Hospital")+
+  theme(legend.position = "none",plot.title = element_text(face = "bold"))
+```
+```{r eval=FALSE}
+table(data$Would.you.refer.a.friend.relative.to.Kenyatta.National.Hospital.)
+```
+97% (n=316) of the respondents felt they would you refer a friend/relative to Kenyatta National Hospital and 3% (n=11) felt they would not.
