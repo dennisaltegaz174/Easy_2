@@ -1,0 +1,128 @@
+---
+title: "Secialized Surgery Department"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warnings= FALSE,
+                      message = FALSE)
+library(tidyverse)
+```
+
+```{r}
+data_11<- data.frame(quiz1a = c(rep(1,22),rep(2,4)),
+                   quiz1b = c(rep(1,14),rep(2,12)),
+                   quiz1c = c(rep(1,24),rep(2,2)),
+                   quiz1d = c(rep(1,17),rep(2,9)),
+                   quiz1e = c(rep(1,20),rep(2,6)),
+                   quiz1f = c(rep(1,24),rep(2,2)),
+                   quiz2a = c(rep(1,21),rep(2,5)),
+                   quiz2b = c(rep(1,21),rep(2,5)),
+                   quiz2c = c(rep(1,25),rep(2,1)),
+                   quiz2d = c(rep(1,25),rep(2,1)),
+                   quiz3a = c(rep(1,24),rep(2,2)),
+                   quiz3b = c(rep(1,26),rep(2,0)),
+                   quiz4a = c(rep(1,26),rep(2,0)),
+                   quiz4b = c(rep(1,26),rep(2,0)),
+                   quiz5a = c(rep(1,16),rep(2,10)),
+                   quiz5b = c(rep(1,21),rep(2,5)))
+```
+
+```{r}
+data_11 %>%
+  gather(key="Questions",value, quiz1a:quiz1f) -> p
+pp<-subset(p, select = c('Questions' , 'value'))
+pp$Questions<-"people"
+pp<-pp[pp$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz2a:quiz2d) -> h
+hh<-subset(h, select = c('Questions' , 'value'))
+hh$Questions<-"people"
+hh<-hh[hh$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz3a:quiz3b) -> i
+ii<-subset(i, select = c('Questions' , 'value'))
+ii$Questions<-"environment"
+ii<-ii[ii$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz4a:quiz4b) -> j
+jj<-subset(j, select = c('Questions' , 'value'))
+jj$Questions<-"equipments"
+jj<-jj[jj$value==1,]
+
+data_11 %>%
+  gather(key="Questions",value, quiz5a:quiz5b) -> k
+kk<-subset(k, select = c('Questions' , 'value'))
+kk$Questions<-"methods"
+kk<-kk[kk$value==1,]
+
+n<-rbind(pp,hh,ii,jj,kk)
+
+
+
+ggplot(data=n,aes(x=factor(Questions),y=prop.table(stat(count)),
+                  fill = factor(Questions),
+                  label=scales::percent(prop.table(stat(count)))))+
+  geom_bar(position = "dodge")+
+  scale_y_continuous(labels = scales::percent)+
+  geom_text(stat = 'count',
+            vjust= -0.5,
+            size= 3)+
+   scale_fill_brewer(palette = "Dark2")+
+  #scale_x_discrete( labels =c("Yes","No"))+
+  labs(x = "Causes of delay",y = "Percentage Proportion",title = "Reduction of turnaround time of specialized \n surgery elective admissions.")+
+  theme(legend.position = "none",plot.title = element_text(face="bold"))
+```
+<br> 
+
+Analysis of data collected on some of the issues the pediatrics Department had identified as causes of delay in echo process had the following results.
+
+
+**STAFF**
+
+a) Ward round precedes admission process leading to delay. M YES
+
+b) No one is allocated to take care of the patients coming for admission to the wards? (nurses/doctors)
+
+c) Admission decision made by senior registrars/consultants? MYES
+
+d) Discharge of patients determines number of patients to be admitted. []
+
+e) Files take long to be brought to the ward? 
+
+f) There's shortage of staff?
+
+
+**PATIENTS**
+
+Patients are not well versed with service points?
+
+
+Directions to the various service points not clear
+
+There are long ques at the service delivery points.
+
+ Many scattered delivery points? 
+
+**ENVIRONMENT**
+
+Slow ICT systems
+
+ Long queues at service delivery points
+
+**EQUIPMENTS**
+
+A. Inadequate beds? 
+
+B. Squeezed space.
+
+
+METHODS
+
+1. Many people involved in the admission process/procedure?
+
+2. Complex procedure/process Protocols (bureaucracy)
