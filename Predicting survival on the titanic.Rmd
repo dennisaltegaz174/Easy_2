@@ -36,8 +36,8 @@ library(reshape2)
 
 ## Raeding in the data
 ```{r}
-train_data = read.csv("C:/Users/adm/Documents/Datasets/titanic survival/train.csv")
-test_data = read.csv("C:/Users/adm/Documents/Datasets/titanic survival/test.csv")
+train_data = read.csv("C:/Users/adm/Documents/Datasets/titanic survival/train.csv",na.strings = "")
+test_data = read.csv("C:/Users/adm/Documents/Datasets/titanic survival/test.csv",na.strings = "")
 
 full_data <- bind_rows(train_data,test_data)
 ```
@@ -116,10 +116,11 @@ From these  graphs we can gather  that:
 
 Checking the correlation between these variables and survival to get a better overview of the importance.
 ```{r fig.height=4, fig.width=5,fig.align='center',echo=FALSE}
-#Turn into numeric
-full_data$Sex <-as.numeric(full_data$Sex)
+# Turn into numeric
+full_data$Sex <- ifelse(full_data$Sex == "male", 1,2)
+
 # Create correlation plot
-corrplot.mixed(corr = cor(full_data[c("Survived","Fare","Sex","Pclass","Age")],use = "complete.obs"),tl.col = "black",upper = "ellipse")
+corrplot.mixed(corr = cor(full_data[c('Survived', 'Fare', 'Sex', 'Pclass', 'Age')], use = 'complete.obs'), tl.col = "black", upper = "ellipse") 
 ```
 
 Out of these variables we can see that sex, passenger class, followed by fare have a small to median correlation with survival; in addition they might be important in predicting survival. 
@@ -151,10 +152,11 @@ ggplot(full_data[1:891,], aes(x = factor(family_size),fill = factor(Survived)))+
 Looks like it was beneficial to have a family size of 2-4 members on board while those alone or in families of 5 and larger had lower chances of survival.Creating a new variable that shows these divisions as it might improve our predictive model.
 
 ```{r}
-# Creating categories for family size:1,2-4,5+
-full_data$family_size_range = cut(full_data$family_size,c(0,1,4,15),include.lowest = TRUE)
-# Fixing the names of the variables
-levels(full_data$family_size_range)= c("1","2-4","5+")
+# Create categories for family size: 1, 2-4, 5+
+full_data$family_size_range = cut(full_data$family_size, c(0, 1, 4, 15), include.lowest = TRUE)
+
+# Next, fix the names of the variables. 
+levels(full_data$family_size_range) = c('1', '2-4', '5+')
 ```
 
 Plotting this new variable to see how it compares  to *family_size* variable.
@@ -177,14 +179,20 @@ Engineering the *Title* variable ,by extracting the title from the existing  the
 
 Using regular  expression to extract the variable.
 ```{r}
-full_data$Title <- gsub('(.*,)|(\\..*)','',full_data$Name)
+full_data$Title <- gsub('(.*, )|(\\..*)', '', full_data$Name)
+```
+
+Take a look at a table of the titles. 
+```{r}
+table(full_data$Title)
 ```
 
 Since some titles have few occurrence reassign these to a new category *rare_title*.
 ```{r}
-rare_title <- c("Capt", "Col","Don","Jonkheer","Lady","Major","Rev",
-                "Sir","the Countess","Dr")
-full_data$Title[full_data$Title %in% rare_title] <- "Rare title"
+rare_title = c('Capt', 'Col', 'Don', 'Jonkheer', 'Lady', 'Major', 'Rev', 'Sir', 
+               'the Countess', 'Dr')
+
+full_data$Title[full_data$Title %in% rare_title] <- 'Rare title'
 ```
 
 Reassign some  of the titles to appropriate categories.
@@ -215,47 +223,46 @@ Extracting the cabin letter from the *Cabin* variable to create *Cabin_letter*.
 
 Using regular expression to extract the cabin letter.
 ```{r}
-full_data$Cabin_letter <- gsub('[0-9].*','',full_data$Cabin)
+full_data$Cabin_letter <- gsub('[0-9].*', '', full_data$Cabin)
 ```
 
 Some cabins have few occurrences  and some are categorized under two cabins.Will combine this to create a new cabin indicator called *EFGT*.Also recording those with out cabin letters to *BLANK*.
 ```{r}
-full_data$Cabin_letter[full_data$Cabin_letter=='E']<- 'EFGT'
-full_data$Cabin_letter[full_data$Cabin_letter=='F']<- 'EFGT'
-full_data$Cabin_letter[full_data$Cabin_letter=='F E']<- 'EFGT'
-full_data$Cabin_letter[full_data$Cabin_letter=='F G']<- 'EFGT'
-full_data$Cabin_letter[full_data$Cabin_letter=='G']<- 'EFGT'
-full_data$Cabin_letter[full_data$Cabin_letter=='T']<- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='E'] <- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='F'] <- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='F E'] <- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='F G'] <- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='G'] <- 'EFGT'
+full_data$Cabin_letter[full_data$Cabin_letter=='T'] <- 'EFGT'
 
 full_data$Cabin_letter[is.na(full_data$Cabin_letter)] <- 'Blank'
 ```
 
 Plotting to see how cabin affects survival.
 ```{r, echo=FALSE,fig.align='center'}
-ggplot(full_data[1:891,], aes(x = factor(Cabin_letter),fill = factor(Survived)))+
-  geom_bar(position = "dodge")+
-  scale_x_discrete()+
-  labs(title = "Survival by Cabin", x ="Family size", y = "Count")+
-  scale_fill_discrete(name = "Outcome", labels = c("Died","Survived"))+
-  theme(legend.position = "right",plot.title = element_text(face = "bold"))+
-  theme_classic()
+ggplot(full_data[1:891,], aes(x = factor(Cabin_letter), fill=factor(Survived))) +
+       geom_bar(position = 'dodge') +
+       scale_x_discrete() +
+       labs(title = 'Survival by Cabin', x = 'Cabin', y = 'Count') + 
+       scale_fill_discrete(name = 'Outcome', labels = c('Died', 'Survived')) + 
+       theme_classic() 
 ```
 
 Looking at this graph , it seems like those who were assigned cabins had a higher chance of survival than those who were not.Creating a new variable that checks cabin presence to look at this in more detail.
 ```{r}
-full_data$cabin_presence[full_data$Cabin_letter=="Blank"]<-"No cabin"
-full_data$cabin_presence[is.na(full_data$cabin_presence)]<-"Cabin"
+full_data$cabin_presence[full_data$Cabin_letter=='Blank'] <- 'No cabin'
+full_data$cabin_presence[is.na(full_data$cabin_presence)] <- 'Cabin'
 ```
 
 Plotting this.
 ```{r,echo=FALSE,fig.align='center'}
-ggplot(full_data[1:891,], aes(x = factor(cabin_presence),fill = factor(Survived)))+
-  geom_bar(position = "dodge")+
-  scale_x_discrete()+
-  labs(title = "Survival by Cabin", x ="Cabin", y = "Count")+
-  scale_fill_discrete(name = "Outcome", labels = c("Died","Survived"))+
-  theme(legend.position = "right",plot.title = element_text(face = "bold"))+
-  theme_classic()
+ggplot(full_data[1:891,], aes(x = factor(cabin_presence), fill=factor(Survived))) +
+       geom_bar(position = 'dodge') +
+       scale_x_discrete() +
+       labs(title = 'Survival by Cabin', x = 'Cabin', y = 'Count') + 
+       scale_fill_discrete(name = 'Outcome', labels = c('Died', 'Survived')) + 
+       theme(legend.position = 'right') +
+       theme_classic()
 ```
 
 People with a cabin  assigned were better off!
@@ -265,14 +272,14 @@ People with a cabin  assigned were better off!
 ## Ticket Number
 Extracting *Ticket_number* from *Ticket* by removing any non numeric characters using regular expressions.
 ```{r}
-full_data$Ticket_number <-gsub('[^0-9]','',full_data$Ticket)
+full_data$Ticket_number <- gsub('[^0-9]', '', full_data$Ticket)
 ```
 
 looking at the ticket numbers which have become blank("") and reassign them.
 ```{r results='hold'}
 table(full_data$Ticket_number=="")
 
-full_data$Ticket_number[full_data$Ticket_number==""]<-0
+full_data$Ticket_number[full_data$Ticket_number==""] <- 0
 ```
 
 Plotting the log of the ticket number.
@@ -301,20 +308,26 @@ There seems to be no real correlation going on here, this will be dis-cluded fro
 
 Creating  a subset of the data and including only relevant variables to use in the prediction model later.
 ```{r}
-full_data_relevant <- subset(full_data,select = c(Survived, Pclass,#Sex,
-                                                  Age,Fare,Title , cabin_presence,family_size_range,
-                                                  #Ticket_number,
-                                                  Embarked
-                                                  ))
+
+full_data_relevant <- subset(full_data, select = c(Survived, Pclass, Sex, Age, Fare, 
+                                   Title, cabin_presence, 
+                                   family_size_range
+                                 # Ticket_number, Embarked
+                                   ))
 ```
 
 Making sure each variable is classified as a integer or a factor.
 ```{r}
 full_data_relevant$Survived <- as.factor(full_data_relevant$Survived)
-full_data_relevant$Pclass <-factor(full_data_relevant$Pclass,ordered = TRUE)
-full_data_relevant$Title<-as.factor(full_data_relevant$Title)
-full_data_relevant$cabin_presence<-as.factor(full_data_relevant$cabin_presence)
+full_data_relevant$Pclass <- factor(full_data_relevant$Pclass, ordered = TRUE)
+full_data_relevant$Survived <- as.factor(full_data_relevant$Survived)
+full_data_relevant$Title <- as.factor(full_data_relevant$Title)
+full_data_relevant$cabin_presence <- as.factor(full_data_relevant$cabin_presence)
 ```
+
+count of all unique values in the model
+sapply(lapply(train, unique), length)
+
 
 <br>
 
@@ -332,8 +345,7 @@ aggr(full_data_relevant,sorVars = TRUE, prop = FALSE, cex.axis = .6, numbers = T
 Using the `preProcess()` to pre process the missing values model using knnInpute. This will scale the data. Exclude the Survived variable from the pre process model and add it later.
 ```{r results='hold'}
 #md_prediction <- preProcess(full_data_relevant[c(2:8)],method = c('knnImpute',"center","scale"))
-
-md_prediction <- preProcess(full_data_relevant[c(2:8)],method = c("knnImpute","center", "scale"))
+md_prediction <- preProcess(full_data_relevant[c(2:8)], method = c('knnImpute', 'center', 'scale'))
 print(md_prediction)
 ```
 
@@ -433,6 +445,7 @@ write.csv(solution_rf,file = 'rf_Titanic_solution.csv',row.names = FALSE)
 <br>
 
 ## Logistic Regression
+
 Create an object for a 10 fold cross validation. ( will be used in the train model)
 ```{r}
 fitControl <- trainControl(method = "cv", number = 10,savePredictions = TRUE)
@@ -441,10 +454,127 @@ fitControl <- trainControl(method = "cv", number = 10,savePredictions = TRUE)
 Creating a predictor model wit `train()`, specifying `method = 'glm'` and `family = binomial()` for the logistic regression.
 ```{r}
 set.seed(222)
-lr_model <-train(factor(Survived) ~ .,
+lr_model <- train(factor(Survived) ~ .,
                  data =  train,
                  method = 'glm',
-                 family = 'binomial()',
+                 family = binomial(),
                  trControl = fitControl);print(lr_model)
 ```
 
+Check the accuracy of the logistic regression model.
+```{r}
+confusionMatrix(lr_model)
+```
+
+Check the importance of  each variable in  the logistic regression model.
+```{r fig.height=5, fig.width=8, fig.align='center'}
+lr_imporatance <- varImp(lr_model)
+
+ggplot(lr_imporatance, aes(x = reorder(variable, importance), y = 'Importance'))+
+  geom_bar(stat = "identity")+
+  labs(title = "Importance of predictors",x = "Predictors", y = "Importance")+
+  theme_light()
+```
+
+### Prediction: Logistic Regression Model.
+
+Predicting using the test set.
+```{r}
+predictio_lr <- predict(lr_model, test)
+```
+
+Save the solution to a data frame with two columns : PassengerId  and Survived(Prediction)
+```{r}
+solution_lr <- data.frame(PassangerID = test$PassangerId, Survived = predictio_lr)
+```
+
+Write the solution to a file.
+```{r}
+write.csv(solution_lr, file = "lr_Titanic_Solution.csv", row.names = FALSE)
+```
+
+> <font size = "3"> **Predicted accuracy of logistic regression model: 82.83%, Leader board accuracy: 63.288%.** </font>
+
+<br>
+
+## Naive Bayes
+
+Creating the training set without the response variable *Survived*
+Next, creating a set with only  survived variable in it.
+```{r}
+train_features <- full_data_final[1:891,-13]
+train_response <- full_data_final[1:891,13]
+```
+
+Model the Naive Bayes with 10 cross validation.
+```{r}
+fitControl <- trainControl(method = "cv",number = 10, savePredictions = TRUE)
+```
+
+Create  a model with useful variables using `train()`
+```{r}
+set.seed(222)
+nb_model <- train(Survived~ .,
+                 data =  train,
+                 method = "nb",
+                 trControl = fitControl);print(nb_model)
+```
+
+
+Check the accuracy of the nb_model.
+```{r}
+confusionMatrix(nb_model)
+```
+
+Check the importance of each feature in our Naives Bayes model.
+```{r fig.height=5, fig.width=8, fig.align='center'}
+nb_importance <- varImp(nb_model)
+ 
+ggplot(nb_importance, aes(x = reorder(variable, importance), y = importance)) +
+       geom_bar(stat='identity') + 
+       labs(title = 'Importance of predictors', x = 'Predictors', y = 'Importance') +
+       theme_light()
+```
+
+#### Prediction: Naive Bayes Model
+
+We will not predict survival on a test data set using the Naive Bayes model we created. 
+
+Predict using the test data.
+```{r}
+prediction_nb <- predict(nb_model, test)
+```
+
+Save the solution to a data frame with two columns: PassengerId and Survived (prediction).
+```{r}
+solution_nb <- data.frame(PassengerID = test$PassengerId, Survived = prediction_nb)
+```
+
+Write the solution to file.
+```{r}
+write.csv(solution_nb, file = 'nb_Titanic_Solution.csv', row.names = F)
+```
+
+> <font size ="3"> **Predicted accuracy of Naive Bayes model: 80.248%, Leader board accuracy: 76.555%.** </font>
+
+<br>
+
+# Results
+
+**Table of results:**
+
+| Classifier          | Predicted Accuracy | Leader board Accuracy |
+|:--------------------|:-------------------|:----------------------|
+| Random Forest       | 0.82899            |  0.79904              |
+| Logistic Regression | 0.82714            |  0.77990              |
+| Naive Bayes         | 0.80248            |  0.76555              |
+
+
+As we can see from the table, the **random forest** model showed the greatest accuracy on the leader board prediction.  
+
+<br>
+
+<style>
+div.blue {background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
