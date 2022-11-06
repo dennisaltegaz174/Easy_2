@@ -1,0 +1,122 @@
+---
+output:
+  pdf_document:
+    toc: yes
+  htlm_document:
+    toc: yes
+    theme: readable
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+       message = FALSE,
+       warning = FALSE,
+       fig.align='center')
+```
+
+
+# Chi-Square Test of Independence
+
+The chi-square test of independence is used to analyze the frequency table (i.e. contingency table) formed by two categorical variables. The chi-square test evaluates whether there is a significant association between the categories of the two variables.
+
+```{r}
+ #Import the data
+file_path <- "http://www.sthda.com/sthda/RDoc/data/housetasks.txt"
+housetasks <- read.delim(file_path, row.names = 1)
+head(housetasks)
+
+```
+
+```
+The **chi-square test of independence** is used to analyze the frequency table (i.e. contengency table) formed by two categorical variables. The **chi-square** test evaluates whether there is a significant association between the categories of the two variables.
+```
+
+The data is a contingency table containing 13 housetasks and their distribution in the couple:
+* **rows are the different tasks**
+* **values are the frequencies of the tasks done :**
+* **by the wife only**
+* *alternatively*
+* **by the husband only**
+* **or jointly**
+
+# Graphical display of contengency tables
+
+Contingency table can be visualized using the function **balloonplot()** [in `gplots` package]. This function draws a graphical matrix where each cell contains a dot whose size reflects the relative magnitude of the corresponding component.
+
+```{r}
+library("gplots")
+# 1. convert the data as a table
+dt <- as.table(as.matrix(housetasks))
+# 2. Graph
+balloonplot(t(dt), main ="housetasks", xlab ="", ylab="",
+            label = FALSE, show.margins = FALSE)
+```
+
+```
+Note that, row and column sums are printed by default in the bottom and right margins, respectively. These values can be hidden using the argument show.margins = FALSE.
+```
+
+It’s also possible to visualize a contingency table as a mosaic plot. This is done using the function mosaicplot() from the built-in R package garphics:
+
+```{r}
+library("graphics")
+mosaicplot(dt, shade = TRUE, las=2,
+           main = "housetasks")
+```
+
+* The argument shade is used to color the graph
+
+* The argument las = 2 produces vertical labels
+
+<div class = "brown">
+- **Note that the surface of an element of the mosaic reflects the relative magnitude of its value.**
+</div>
+
+
+* Blue color indicates that the observed value is higher than the expected value if the data were random
+
+* Red color specifies that the observed value is lower than the expected value if the data were random
+
+<style>
+div.blue {background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "green">
+- From this mosaic plot, it can be seen that the house tasks Laundry, Main_meal, Dinner and breakfast (blue color) are mainly done by the wife in our example. 
+</div>
+
+<br>
+
+There is another package named vcd, which can be used to make a mosaic plot (function mosaic()) or an association plot (function `assoc()`).
+
+
+# Chi-square test basics
+
+Chi-square test examines whether rows and columns of a contingency table are statistically significantly associated.
+
+* **Null hypothesis (H0):** the row and the column variables of the contingency table are independent.
+
+* **Alternative hypothesis (H1):** row and column variables are dependent
+For each cell of the table, we have to calculate the expected value under null hypothesis.
+
+```{r}
+chisq <- chisq.test(housetasks)
+chisq
+```
+
+
+<div class = "brown">
+- In our example, the row and the column variables are statistically significantly associated (p-value = 0).
+</div>
+
+The observed and the expected counts can be extracted from the result of the test as follows:
+
+```{r}
+# Observed counts
+chisq$observed
+```
+
+```{r}
+# Expected counts
+round(chisq$expected,2)
+```
+
