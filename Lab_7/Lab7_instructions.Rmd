@@ -1,0 +1,443 @@
+---
+title: "Lab 7: Correlation and Linear Regression"
+author: "Co-edited by Tatum Katz, Sam Sambado & Kacie Ring"
+date: "2/19/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 1
+    toc_float: true
+---
+
+
+```{r setup, include=TRUE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+# packages needed for lab 7
+library(readr)
+library(tidyverse)
+library(car)
+library(ggplot2)
+library(psych) # new package alert! Make sure to install.packages("")
+
+# datasets needed for lab 7
+kelp <- read_csv("kelp_data.csv")
+deet <- read_csv("deet.csv")
+plant <- read_csv("plant_data.csv") # the plant data will forever haunt us
+spiders <- read_csv("spiders.csv")
+```
+
+# Correlation Background
+
+### 1.1 Correlation Background 
+
+Correlation tells us (1) whether two variables are linearly associated with each other and (2) how they are associated (positively, negatively, or neither). For example, we may be interested in whether large bodied animals have larger brains: in other words, are body mass (**X**) and brain size (**Y**) correlated? To answer this question, we need to use something called **Pearson's correlation coefficient**, which is written as *r*. The *r* coefficient has the following properties:  
+  
+1. It has a value between 
+     + -1 (perfect negative correlation) 
+     + 1 (perfect positive correlation) 
+     + 0 indicates no correlation  
+     
+2. It is defined as by the equation: $$r = \frac{ \Sigma(X - \bar{X})(Y-\bar{Y})}{\sqrt{\Sigma(X-\bar{X})^2}\sqrt{\Sigma(Y-\bar{Y})^2}}$$  
+    Notice that if we were interested in the correlation of X with itself (body mass with body mass) equation 1 would be equal to 1: perfect positive correlation.  
+  
+3. *r* is only looking for a **linear** correlation between variables. It will not identify non-linear patterns.  
+  
+### 1.2 Inference with *r*  
+  
+While *r* by itself can be useful, we often want to determine whether the correlation between two variables is significant. To do this wee need to make the following assumptions about **X** and **Y**:  
+  
+1. **X** and **Y** follow a bivariate normal distribution. This is actually difficult to test directly, but we can look at the following features of our correlation and if they hold we can assume bivariate normality:  
+    + Is the relationship between **X** and **Y** linear?  
+    + Does the cloud of points have an elliptical shape?  
+    + Are **X** and **Y** both normal?  
+  
+Again, this does not guarantee bivariate normality, but it is good enough for our purposes. If these assumptions are not met, try transforming the data!  
+  
+We can test the hypothesis that there is a significant correlation between two variables **X** and **Y** by asking whether $\rho$ (the true value of *r*) is equal to zero or not: 
+$$H_0 : \rho = 0 \\ H_A: \rho \neq 0$$  
+  
+We can use a standard t-test to do this: $$t = \frac{r}{SE_r}$$  
+  
+where $SE_r$ is: $$SE_r = \sqrt{\frac{1-r^2}{n-2}}$$  
+  
+and **n** is the number of (**X**,**Y**) pairs.  
+  
+### 1.3 Nonparametric correlation: Spearman's rank correlation  
+  
+If the assumptions of the parametric correlation are not met you can use a non-parametric alternative called **Spearman's rank correlation**. Like all of the non-parametric tests that we have seen in this class, Spearman's rank correlation looks at an association between the rank of the two variables. There are two assumptions of this test:  
+  
+1. The observations are random samples  
+2. The relationship between **X** and **Y** is monotonic  
+  
+The details are given in your book and we will explore how to do this test in R in the next section!  
+  
+# Correlation Exercises
+
+### 2. Correlation Analysis in R  
+  
+Let's look at our kelp dataset and ask the following two questions:  
+  
+1. Is the maximum width of a kelp wrack correlated with the minimum width of a kelp wrack?  
+2. Is the abundance of maximum width of a kelp wrack correlated with the amphipods under a kelp wrack?  
+  
+To answer these questions let's do the following:  
+  
+1. Load the dataset `kelp_data.csv`, and name it `kelp` (we did this in our first code chunk). Take a look at the data.
+
+```{r}
+# View(kelp)
+head(kelp)
+str(kelp) # 120 rows, 6 variables
+```  
+  
+2. Make a correlation plot of maximum width, minimum width, and amphipod abundance
+```{r}
+# subset the data you want to plot using indexing
+# indexing: DATASET[ROWS, COLUMNS]
+# pairs.panels() only takes data.frames, not formulas!
+plot.kelp <- data.frame(kelp[,2:3], kelp[,5]) 
+colnames(plot.kelp)<-c("max_wid", "min_wid", "abund_amphipod") #give columns names
+
+# always double check that you subset correctly
+glimpse(plot.kelp) # 120 rows, 3 variables
+```
+
+```{r}
+# ALTERNATIVE METHOD: using dplyr::subset to subset
+plot.kelp <- subset(kelp,
+                    select=c("max_wid","min_wid","abund_amphipod")) 
+
+glimpse(plot.kelp) # 120 rows, 3 variables
+```
+
+```{r}
+# create our correlation plot
+pairs.panels(plot.kelp, density = TRUE, cor=FALSE, lm=TRUE)  # makes a scatterplot matrix of your dataset: shows density plots, do not show correlation values, use a linear model
+
+```
+
+The first thing you should notice is that **none** of our variables are normally distributed (check out the histograms on the diagonal). Because bivariate normality is an assumption of correlation, let's try log transforming all of these variables.  
+  
+Remake the scatterplots using a new variable `log_max`, `log_min`, and `log_abund`.  
+
+```{r}
+log.plot.kelp <- log(plot.kelp + 1) # a fast and easy way to log the whole dataset!
+
+# rename columns since they're log transformed
+colnames(log.plot.kelp)<-c("max_wid_log", 
+                           "min_wid_log", 
+                           "abund_amphipod_log") 
+
+# plot the correlations with log transformed values
+pairs.panels(log.plot.kelp, density = TRUE, cor=FALSE, lm=TRUE)  
+```  
+
+You can see that the normality of the maximum and minimum kelp width is much better (we could test it with a Shapiro-Wilk). Moreover, there is no clear non-linear relationship that we can see between `max_wid_log` and `min_wid_log`. Therefore, let's proceed with a correlation test between these two variables:  
+
+```{r}
+# run a Pearson's correlation coefficient with a two sided hypothesis
+cor.test(log.plot.kelp$max_wid_log, log.plot.kelp$min_wid_log, 
+         method="pearson", alternative="two.sided") 
+```
+First, look at `cor`. This is *r*. An *r* of 0.09 suggests an incredibly weak, positive correlation between these two variables. We can use our hypothesis test to look at this. The p-value for our hypothesis test is 0.3238, therefore, 
+
+*we fail to reject $H_0$ that there is no significant correlation between log maximum kelp width and log minimum kelp width*.  
+  
+We now want to test the correlation between maximum kelp width and amphipod abundance. First, not that even after transformation, amphipod abundance is still not normal. However, there is also no clear non-linear relationship between the two variables. Therefore, let's use a **Spearman's correlation coefficient**.
+
+```{r}
+# run a Spearmans's correlation coefficient with a two sided hypothesis - note we are not using the logged data since we are doing a non-parametric test!
+cor.test(plot.kelp$max_wid, plot.kelp$abund_amphipod, 
+         method="spearman", alternative="two.sided") 
+```
+
+First, look at $\rho$. This is the Spearman's correlation coefficient and, like *r*, it varies from -1 to 1. The positive value tells us that there is a positive association between our variables. Next, look at the p-value for our hypothesis test: it is so small! Therefore, 
+*we reject the $H_0$ that there is no significant correlation between the ranks of amphipod abundance and the ranks maximum kelp width*. 
+
+n other words, *there tend to be more amphipods under larger kelp wracks*.  
+  
+Bonus: want to see all correlations all ways?
+```{r}
+# plot all correlations from the kelp dataset (not the subset)
+pairs.panels(kelp, density = TRUE, cor=TRUE, lm=TRUE, method="spearman") 
+```
+
+# Linear Regression Background
+
+### 3.1 Review  
+  
+Before we get started, we need to review a little terminology:  
+  
+* **Y**: response variable  
+* **X**: predictor (explanatory) variable  
+  
+Linear regression is used when you want to:  
+  
+* Investigate how a **Y** depends on **X**  
+* Predict **Y** using **X**  
+  
+For example, if you were interested in determining whether a baby's age (**X**) was a signficant predictor of a baby's ear length (**Y**), you would collect a bunch of (**X**,**Y**) pairs and build a regression model. From this model you could predict the expected ear length of a baby who was, say, 18 months old. What would this model look like? What are the assumptions of the model? Proceed to the next section to find out!
+  
+### 3.2 The linear regression model  
+  
+Your book gives the linear regression model as $$Y = a + bX$$.  
+  
+but you more often see it written as $$Y_i = \beta_0 + \beta_1X_i+\epsilon_i$$.  
+  
+where $\beta_0$ is the y-intercept, $\beta_1$ is the slope of the line, and $\epsilon_i$ is a random variable that is normally distributed with a mean of 0 and variance $\sigma^2$. Written in terms of our baby example it would look something like $$(ear length)_i = \beta_0 + \beta_1(baby age)_i + \epsilon_i$$.  
+  
+All this is saying that the response variable (baby ear length) can be predicted from our explanatory variable (baby age). The $\epsilon_i$ is telling us that each observation has a little bit of variation in it (all babies that are 18 month sold will not have the exact same ear length), and we are assuming that that variation is normally distributed and the same for all babies, regardless of their age. You can also think of it as accounting for error (unpredictable variance) in the model, hence the epsilon. You can see that this leads us right into the assumptions of linear regression.  
+  
+### 3.3 Assumptions of Linear Regression  
+  
+Here are the assumptions of linear regression and how to test them:  
+  
+1. The model is correct (we are not over-fitting or under-fitting the model). For each $X_i$, the corresponding $Y_i$ is a random sample.  
+    + Meet this assumption via good experimental design.  
+2. Our $Y_i$'s are independent (not correlated to each other).  
+    + Meet this assumption via good experimental design.  
+    + Can also check by testing for correlation.  
+3. The variances of $Y_i$'s are the same for all values of $X_i$.  
+    + Test by ensuring that the residual plot does not have a distinct pattern (refer back to previous labs, like lab 6!)  
+  
+Notice that we test the assumptions of linear regression in exactly the same way we test the assumptions of ANOVA!  
+  
+### 3.4 Fitting a linear regression
+  
+Once our assumptions are met, we can fit a linear regression using the method of least squares. This gives us the line, $Y = b_0 + b_1X$ (where $b_0$ and $b_1$ are estimates of $\beta_0$ and $\beta_1$, respectively) that minimizes the equation $$\sum_{i=1}^{n}(Y_i - \hat{Y_i})^2$$  
+  
+If you want to really nerd out (always encouraged) you can minimize this equation yourself (just take the derivative and set it equal to zero), but all you need to know for this class is the result: $$b_1 = \frac{\Sigma(X_i  - \bar{X})(Y_i - \bar{Y})}{\Sigma(X_i - \bar{X})^2} \\ b_0 = \bar{Y} - b_1\bar{X}$$  
+  
+What just happened? *By plugging our data into these equations, we get a best fit line which can predict Y from X*.  
+  
+### 3.5 Hypotheses of linear regression  
+  
+While we can test many hypotheses with a linear regression model, the most common hypotheses that we will test is whether **X** is a significant predictor of **Y**. In other words, is the slope of our regression line different from 0? This is phrased as $$H_0: \beta_1 = 0 \\ H_A: \beta \neq 0$$.  
+  
+As we will see in the following example, this H_0 can be tested with a t-test or an ANOVA.  
+
+# Linear Regression Exercises
+  
+### 4.1 Does DEET deter mosquitoes?  
+  
+Let's use regression analysis to ask the following question: *Does increasing the amount of DEET (mosquito repellent) you use decrease the number of mosquito bites you get?* In this example, **X** is the amount of DEET and **Y** is the number of mosquito bites. Keep in mind that we are trying to **predict** **Y** from **X**, so we should use regression and NOT correlation. Do the following:  
+  
+1. Load in the dataset `deet.csv` and call it `deet` (we did this before) and take a look at the data.
+
+```{r}
+# View(deet)
+head(deet)
+glimpse(deet) # 52 rows, 2 variables
+```  
+
+2. Now, visualize the data correlations with a scatterplot.  
+```{r}
+# plot correlations
+pairs.panels(deet, density = TRUE, cor=FALSE, lm=TRUE)
+```
+  
+Notice there seems to be a **linear** relationship between deet `dose` and `bite` number! If there was not a linear relationship we would need to try a **transformation**.  
+  
+3. We now need to check our assumptions of normality and equal variance. To do that, let's make our linear regression model.
+
+```{r}
+# run a linear regression model
+deet.lm <- lm(bites ~ dose, data=deet)
+
+# view the results
+summary(deet.lm)
+```  
+  
+Just like with ANOVA, your model is now saved and ready to use! 
+
+4. Let's test the model's assumptions.
+
+```{r}
+par(mfrow = c(2,2))
+plot(deet.lm)
+
+par(mfrow = c(1,1))
+
+# confirm normality with the residuals using Shapiro test
+shapiro.test(deet.lm$residuals)
+
+```  
+  
+Just like with ANOVA, the second plot (Normal Q-Q) tests our assumption of normality. We can see that the QQplot of our residuals does not deviate much from the straight line, and along with our Shapiro test output we can conclude that our assumption of normality is met. If we then look at the first plot (Residuals vs Fitted), we see that the red line is not perfectly horizontal, but there is no distinct pattern in the residuals about the 0 line. Therefore, our equal variance assumption is met. If our assumptions were not met we could try some transformations.  
+  
+### 4.2 Interpreting the linear regression output  
+  
+Running the linear regression model above gives the following output:
+```{r}
+summary(deet.lm)
+```  
+  
+Let's work through this output, since there is a ton of information.  
+  
+1. Locate your estimates for $b_0$ and $b_1$ under **Estimate** under **Coefficients:**  
+    + $b_0$ = intercept = 3.88902  
+    + $b_1$ = dose = -0.40979  
+    + you interpret $b_1$ as follows: *for everyone one unit increase in the dose of DEET, there is a corresponding 0.40979 decrease in the number of mosquito bites a person receives.  
+    + your linear model is: $Y_i = 3.889 - 0.409X_i$  
+  
+2. Look at the column `Pr(>|t|)` for your p-values.  
+    + Remember that our $H_0$ for linear regression is that our $\beta_1 = 0$. In other words, is **dose** a significant predictor of **bites**?  
+  
+    + We see that the p-value for dose is 1.74e-05. We can **reject our $H_0$ and say that the amount of DEET is a significant predictor of the number of mosquito bites (i.e. the slope is not 0)*. More specifically, *as we increase the dose of DEET, we see a significant decrease in mosquito bites**.  
+    
+    + Equivalently we could type anova(deet.lm) and examine the ANOVA table for our regression model. We see that we get exactly the same p-value.  
+  
+3. Find the $R^2$ of the linear regression model.  
+    + $R^2$ = multiple-R-squared = 0.311  
+    + We interpret this value as follows: **31.1% of the of the variation in the number of mosquito bites (Y) can be explained by the dose of DEET (X)**.  
+  
+  
+# HOMEWORK  
+
+Use RMarkdown to answer these questions and upload your answers as HTML or PDF in the Lab 7 turn-in link on GauchoSpace. 
+  
+### **Question 1: correlating dandelions**  
+  
+We are going to look at the plant dataset and ask the following question:  
+  
+*Does the number of leaves in a dandelion rosette `num_leaves_in_rosette` correlate with the diameter of the rosette `dand_rosette_diam_cm`?*  
+  
+Load in the `plant_data.csv` dataset and do the following:
+  
+**1 A**. Clearly state your null and alternative hypotheses for the correlation test of the untransformed data.
+  
+**1 B**. Use a correlation (scatterplot) matrix of `num_leaves_in_rosette` and `dand_rosette_diam_cm` to assess your assumptions for a parametric correlation test (on the untransformed data) using the `pairs.panels()` function. Do you think your assumption of linearity and bivariate normality are met just based on the figure (i.e. do you need to run any Shapiro-Wilk tests)?  
+
+*Hint: for your pairs plot, make sure to subset the variables of interest (e.g. `num_leaves_in_rosette` and `dand_rosette_diam_cm`)* 
+
+```{r}
+# Subset with indexing in base R
+
+# NEWDATAFRAME <- data.frame(DATAFRAME[,VARIABLECOLUMNNUMBER:VARIABLECOLUMNNVARIBLE])
+
+# colnames(NEWDATAFRAME)<-c("COLUMNNAME", "COLUMNNAME")`
+
+# OR subset using subset function
+
+# NEWDATAFRAME <- subset(DATAFRAME, select=c("COLUMNNAME","COLUMNNAME")) 
+
+# pairs.panels matrix of untransformed data
+
+```
+
+[your answer in words here]
+  
+**1 C**. If your assumptions of bivariate normality are not met (i.e. at least one of the variables is not normal), transform whatever variable is not normal so that the assumptions of linearity and bivariate normality are met. Assess these assumptions using a scatterplot matrix with `pairs.panels()` and briefly describe how the plot shows you that the assumptions are now met.  
+
+*Hint: If you log-transform `num_leaves_in_rosette` be sure to add 1!*
+
+```{r}
+# transform your data, if needed
+
+# pairs.panels matrix of transformed data
+
+```
+
+[your answer in words here]
+  
+**1 D**. Run a Pearson's correlation test on the **transformed** data.
+
+```{r}
+# Pearson's correlation test on transformed data
+
+```
+  
+**1 E**. Run a Spearman's rank correlation test on the **untransformed** data.  
+
+```{r}
+# Spearman's rank correlation test on the untransformed data
+
+```
+  
+**1 F**. Based on both tests, what do you conclude about the correlation (positive, negative, none) between number of leaves in a dandelion rosette and the diameter of a dandelion rosette?  
+ 
+[your answer in words here]
+
+  
+  
+### **Question 2: social spiders**  
+  
+Social spiders live together in kin groups where they build communal webs and cooperate in gathering prey. You gather web measurements on 17 colonies of the social spider *Cyrtophora citricola* in Gabon to determine whether you could **predict** the number of spiders in a colony based on how high the web was off of the ground. Load in the dataset `spiders.csv` and do the following:  
+  
+**2 A**. Clearly state your null and alternative hypotheses for a regression analysis of the untransformed data.  
+ 
+[your answer]
+  
+**2 B**. Make a simple scatterplot of the (untransformed) data using `plot()`. What stands out to you about the plot?
+
+*Hint: remember a simple scatterplot is just `plot(y~x)`*
+
+```{r}
+# plot of untransformed data
+```
+
+[your answer]
+  
+**2 C**. Fit a linear regression to the (untransformed) data, and look at the diagnostic plots like we did earlier and display them below. Based on these plots, are the assumptions of normality and equal variance met? Briefly explain your answer. 
+
+```{r}
+# fit linear regression to (untransformed) data
+
+# look at diagnostic plots
+```
+
+[your answer]
+ 
+  
+**2 D**. You learn that one of the research technicians miscounted observation 5 and you decide to drop it from your data and run a regression analysis. You can use the `subset()` function where `colony!=5`, and run your regression on the new subset. After you have fit the regression model, check your assumptions with *diagnostic plots* (the plots that contain the residuals vs fitted plot and qqPlot of residuals) and report whether you think your assumptions for the linear regression are met.  
+
+*Hint: review your assumptions for a linear regression*
+
+```{r}
+# subset out the data for observation 5
+
+# run new regression on new subset
+
+# check assumptions using diagnostic plots
+
+```
+
+[your answer]
+  
+**2 E**. If necessary, try transforming your response and/or predictor variables. Report what transformations you tried in a sentence and show the resulting diagnostic plots below. 
+
+*Hint: Make sure you continue to exclude colony 5!* 
+
+```{r}
+# Transform your response and/or predictor variables
+# HINT: use the subsetted data without observation 5 as your input
+
+# run new regression on transformed data
+
+# check assumptions using diagnostic plots
+
+```
+
+[your answer]
+  
+**2 F**. Report the resulting linear regression model in the form: response variable = b0 + b1 * explanatory variable, filling in the variables. Then, interpret b1 in a sentence. 
+
+*Hint: make sure to specify which variables are transformed if there are transformations*
+ 
+[your answer]
+  
+**2 G**. Use the model you wrote down in the question above to predict the expected number of spiders in a colony 230cm off of the ground. 
+
+*Hint: if you log transformed your data, remember that log in R is by default the natural log. To solve for the natural log (LN) you take the exponent of that value with the code `exp()`*
+
+```{r}
+# area to use r to get your answer
+
+```
+
+[your answer]
+  
+**2 H**. Finally, report the $R^2$ value of the model and interpret it in a sentence.
+ 
+[your answer]

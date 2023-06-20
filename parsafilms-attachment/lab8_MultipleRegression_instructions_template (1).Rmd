@@ -1,0 +1,267 @@
+---
+title: "Lab 8: Multiple Regression and Model Selection"
+author: "Caroline Owens, edited by Sam Sambado, Erin Dillon, & Renee LaManna"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+---
+
+
+```{r setup, include=FALSE, messsage = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# packages needed for lab 8
+# If you haven't used a package before you will need to install it with install.packages("package") 
+library(tidyverse)
+library(car) #for the qqPlot function
+library(psych) #for pairs.panels()
+library(knitr) # New package alert! To make beautiful tables
+library(nlme) #New package alert! For mixed effects models (linear models with random effects) 
+
+# datasets needed for lab 8
+plant <- read_csv("C:/Users/user/Downloads/Lab_7/plant_data (1).csv") # our old friend
+```
+
+# BACKGROUND
+
+## Multivariate Linear Models
+
+At this point in the quarter, you know several ways of analyzing the relationship between two variables - that is, whether one variable is *predicted by* another. We learned last week that a linear model with one predictor variable can be written as $$Y_i = \beta_0+\beta_1X_i+\epsilon_i$$ where $Y_i$ is the value of your response variable, $X_i$ is the value of your predictor variable, and $\epsilon_i$ is the value of the residual for that point. 
+
+In real life, however, one predictor can rarely explain all of the patterns in your response variable. More often, a response can be predicted by a combination of predictors. For example, your height may be predicted by some combination of your parents' height, your diet and nutrition, your age, and other factors.
+We write these multivariate linear models as 
+$$Y = \beta_0+\beta_1X_1+ \beta_2X_2 + ... + \beta_nX_n+\epsilon$$
+Notice that you can have as many predictors (X-variables) as you want, and that each one can be more or less important to the final value of Y depending on the relative size of its coefficient. Our height example might look like this:
+
+$$Adult~height = (0.4)*(Mom's~height) + (0.4)*(Dad's~height)+2*(nutrition~score)+\epsilon$$
+
+Our hope is that by adding predictors, we will be able to explain more and more of the variability in the response variable in the model, increasing our $R^2$ value and decreasing the size of the residuals. However, each additional predictor adds another coefficient that must be estimated to fit our model. Estimating these extra parameters decreases the degrees of freedom and decreases the power of the analysis. For this reason, you can never have more predictors than you have data points (i.e. your dataset should be longer than it is wide). You will get the best model performance when you have *many* more data points than predictors.
+
+When assessing the fit of a multiple regression model, we always use the *adjusted $R^2$* value instead of the regular $R^2$. The adjustment takes into account how many parameters have been estimated to build the model, as well as the sample size. 
+
+### Assumptions of multiple regression
+
+You can think of a single variable linear model (LM) as a multiple regression model with all coefficients $B_n,~n>1$ set to 0, so all the assumptions from our one-variable linear model still apply to multiple regressions. However, we also add some new assumptions to handle possible interactions between the x-variables. One important new assumption is *no multicollinearity**, which means that no two predictors are highly correlated with each other. 
+A good way to check this is by using the `pairs.panels()` function from the `psych` package again. We use the scatter plots to look for variables that have a high correlation with each other. We are hoping that our predictors will have a linear relationship with our response variable (and we can transform our predictors to improve that fit if we need to). However, if we see any strong linear patterns between predictors, we need to drop one of those predictors from the model. 
+
+**Clarification: not all of your predictors need to be normally distributed, as long as the residuals of your model are normal.**
+
+To summarize our assumptions for a general linear model, before conducting multiple regression we have to check that:
+
+  + observations represent a random sample
+  
+  + there is no multicollinearity between predictors
+  
+  + there is some linear relationship between predictors and the response
+
+  + residuals of the model are normal 
+
+  + residuals of the model have equal variance
+
+
+### Types of multiple regression
+
+*ANCOVA* includes a categorical (group) variable as well as a continuous (regression) variable in the set of predictors. One key assumption of ANCOVA is that within each group, the slope (relationship between continuous predictor and response) is the same.
+
+If you think that the slope varies depending on the value of other predictors, you need to fit a model with *interaction terms*. `lm(y~x1*x2)` predicts y based on x1, x2, and the interaction of x1 and x2.
+
+A variable that doesn't have a linear relationship with your response, but may be affecting its value, can be included as a *random* or *block* effect. This is a way of accounting for confounding variables, or groups that are outside your experimental design but still could affect the value of your response. To include random effects in your model, you will need to use the function `lme()` instead of `lm()`. The syntax of a model with fixed effect (x1, x2) and a random effect (g1) is `lme(y~x1 + x2, random = ~1|g1, data = dataset)`. These models will often fail to run if your dataset includes NA values, so be sure to clean the dataset using `na.omit()` first.
+
+# EXERCISES
+
+Let's use some familiar data to practice fitting a multivariate model. Load and inspect the plant_data.csv data. First, look at the structure of your data. Then put clean up the data by putting your categorical variables into factor format.
+```{r, message=FALSE}
+glimpse(plant) # 259 observations, 10 variables
+```
+
+
+```{r, eval=FALSE}
+## clean up formatting issues
+plant$tran_number <- as.factor(plant$tran_number) #transect number is categorical not numeric
+plant$day_of_week <- trimws(plant$day_of_week, which = "both") #this gets rid of the spaces around the words
+plant$day_of_week <- as.factor(plant$day_of_week) #notice that this will use alphabetical levels unless otherwise specified 
+plant <- na.omit(plant) #this removes the entire observation for any NAs
+```
+
+```{r}
+# Or the tidy way!
+plant <- plant %>% 
+  mutate(tran_number = as.factor(tran_number), #the last , is telling the mutate function to do multiple things
+         day_of_week = trimws(day_of_week, which = "both"),  #this gets rid of the spaces around the words
+         day_of_week = as.factor(day_of_week)) %>% #notice that this will use alphabetical levels unless otherwise specified 
+  drop_na() #tidyverse's na.omit alternative
+```
+
+Use the function pairs_panels() to check whether any of the variables exhibit significant collinearity.
+```{r}
+pairs.panels(plant, lm = TRUE, cor = T) #note - num_flowers and num_dand_flowers are highly correlated
+
+## remove num_dand_flowers so no variables are collinear
+plant_sub <- subset(plant, select = -num_dand_flowers)
+## NOTE: the `tidy` way to do this is
+# plant_sub <- plant %>% 
+#   select(-num_dand_flowers)
+
+pairs.panels(plant_sub, lm = TRUE) #now there are no very strong correlations
+```
+
+Fit a model with one predictor. Then fit a second model using that predictor plus some others that you think will help explain more of the variation. Compare the $R^2$ and adjusted $R^2$ values for these models. Is adding predictors helpful? Looking at the residual plots do any of the models violate the assumptions of normality or homoscedasticity? 
+```{r}
+fit_1var <- lm(percent_cover ~ num_leaves_in_rosette, 
+               data = plant)
+
+fit_2var <- lm(percent_cover ~ num_leaves_in_rosette + dist_from_edge_m, 
+               data = plant) 
+
+fit_3var <- lm(percent_cover ~ num_leaves_in_rosette + dist_from_edge_m + dist_from_tree_m, 
+               data = plant)
+
+fit_4var <- lm(percent_cover ~ num_leaves_in_rosette + dist_from_edge_m + dist_from_tree_m + num_flowers, 
+               data = plant) 
+
+mixed_effects <- lme(percent_cover ~ num_leaves_in_rosette, random = ~1|tran_number, data = plant) #if there were NAs in the dataset use na.action = na.omit argument
+
+#Look at diagnostic plots for each model
+par(mfrow = c(2,2))
+plot(fit_1var) 
+#etc
+plot(fit_4var) 
+par(mfrow = c(1,1))
+```
+
+### Model selection (and how to make pretty data tables)
+
+In lecture, we discussed how to calculate Akaike's Information Criterion (**AIC**) from the log-likelihood of a model. Remember that AIC is only a valid comparison between models that were fitted using exactly the same data. The absolute value of the AIC doesn't matter; we are only concerned about the *relative* value of AIC. A model with a smaller AIC value performs relatively better than a model with a larger AIC value. Don't get tripped up by negative AICs - **we are looking for overall smallest, not closest to 0**.
+
+We can also compare models using the BIC. AIC and BIC should generally lead us to similar results, but BIC places a higher penalty on extra parameters. This helps to enforce the principle of parsimony - that a simpler model is best.
+
+Finally, we can compare the **adjusted R-squared** value for each model to see how much variation in the y-variable is explained by each combination of predictors. We are looking for a model with high adjusted R-squared.
+
+It is often convenient to print all of these values for each model as a neat table, so that your reader can compare them all at a glance. The function kable() in the package knitr allows us to print a dataframe as a table in html, pdf, or latex format (run in console, not in your markdown, to see the different formats). Look up the help documentation for kable using ?kable. You can specify left, right, or center alignment, give the number of digits to round to for the whole table or for each column individually, edit the names of your columns, and more to get the perfect beautiful table for your report.
+
+
+```{r}
+## make a list of all the models NOTE the mixed effects model will not work with this code
+models <- list(fit_1var,fit_2var,fit_3var,fit_4var)
+
+## make a list of df, AIC, BIC, Rsq and adj-Rsq for each model
+## map and map_dbl apply functions to each element of a vector
+### degrees of freedom
+df <- models %>% map_dbl('df.residual') #model$df.residual tell you df of each model individually
+## AIC
+aic <- models %>% map_dbl(AIC) #AIC(model) tells you AIC of each model individually
+## BIC
+bic <- models %>% map_dbl(BIC)
+##rsq
+rsq <- models %>% map(summary) %>% map_dbl('r.squared')
+## adjusted rsq
+adj.rsq <- models %>% map(summary) %>% map_dbl('adj.r.squared')
+
+## make those into a dataframe 
+## HINT data.frame(colname1 = what goes in column 1, colname2 = what goes in column 2, etc)
+results <- data.frame(model = c("fit_1var","fit_2var","fit_3var","fit_4var"),
+                      df = df,
+                      AIC = aic,
+                      BIC = bic, 
+                      Rsq = rsq, 
+                      Adj.Rsq = adj.rsq)
+
+## print the dataframe in a pretty kable format
+kable(results, digits = 2, align = "c")
+```
+
+### Predictions  
+
+Once you have a model that fits your data you can use it to make predictions for what *y* would be for any *x* value. For example using our simple linear model `fit_1var: percent_cover ~ num_leaves_in_rosette` for a new flower that has 21 leaves in the rosette.
+
+```{r}
+## first make a new dataframe with your new observation (the column name must match the name in the plant dataframe exactly)
+plant_new_leaves1 <- data.frame(num_leaves_in_rosette = c(21, 10)) 
+## look at the new dataframe
+plant_new_leaves1
+
+## make a prediction using fit_1var
+plant_new_leaves1$predicted_percent_cover <- predict(fit_1var, newdata = plant_new_leaves1)
+## see what was predicted for each value
+plant_new_leaves1
+
+## compare to what we observed in our dataset (notice points are a above center)
+ggplot(plant, aes(x=num_leaves_in_rosette, y = percent_cover)) +
+  geom_point(aes(col="actual"))+ #observations in plant data
+  geom_point(data = plant_new_leaves1, aes(x = num_leaves_in_rosette, y = predicted_percent_cover, col="predicted"), cex = 2)+
+  labs(x = "Number of leaves in rosette",
+       y = "Percent cover")+
+  theme_bw()
+```
+
+To make predictions for a multiple linear regression we follow the same process. The difference is our new dataframe needs to contain information about all of the predictors (*x*) in the model. For example, `fit_4var: percent_cover ~ num_leaves_in_rosette + dist_from_edge_m + dist_from_tree_m + num_flowers`:
+```{r}
+## first make a new dataframe with your new observation (the column name must match the name in the plant dataframe exactly)
+plant_new_leaves2 <- data.frame(num_leaves_in_rosette = c(21, 10),
+                               ## using constant values for the other predictors so we can see how prediction changes when only num_leaves_in_rosette changes
+                               dist_from_edge_m = c("0.0m", "0.0m"),
+                               dist_from_tree_m = c(2, 2),
+                               num_flowers = c(2,2)) 
+## look at the new dataframe
+plant_new_leaves2
+
+## make a prediction using fit_1var
+plant_new_leaves2$predicted_percent_cover <- predict(fit_4var, newdata = plant_new_leaves2)
+
+## see what was predicted for each value
+plant_new_leaves2
+## and compare to prediction with fit_1var
+plant_new_leaves1
+
+## compare to what we observed in our dataset (notice the points are more central)
+ggplot(plant, aes(x=num_leaves_in_rosette, y = percent_cover)) +
+  geom_point(aes(col="actual"))+ #observations in plant data
+  geom_point(data = plant_new_leaves2, aes(x = num_leaves_in_rosette, y = predicted_percent_cover, col="predicted fit_4var"), cex = 2)+
+  geom_point(data = plant_new_leaves1, aes(x = num_leaves_in_rosette, y = predicted_percent_cover, col="predicted fit_1var"), cex = 2)+
+  labs(x = "Number of leaves in rosette",
+       y = "Percent cover")+
+  theme_bw()
+```
+
+
+# HOMEWORK
+
+Using the airquality data in R, find a best model to predict ozone levels and assess how well your model performs. Treat this lab as a warm-up for your final project: make it look as neat and professional as you can. Remember when plotting residuals to  use `par(mfrow = c(2,2))` so all 4 plots appear in one figure, and that you can reset the plotting area using `par(mfrow = c(1,1))`. 
+
+1. Read in the air quality data and visualize it. What are your potential predictors? What are some potential random factors? Remove any missing data to 'clean up' the dataset.
+```{r}
+data("airquality")
+```
+
+2. Check the linear model assumptions (multicollinearity, linear relationship with the response, normality and homoscedasticity of residuals). Transform any data that violates assumptions (remember, not all predictors need to be normal as long as the model residuals are normal). Check for any influential outliers. Describe what you find.
+
+3. Fit a linear model with one predictor. Check its residuals for normality.
+
+4. Fit a  least two other models with different combinations of predictors (no random effects!). State whether you are including random effects or interaction terms. Check the residuals for normality. 
+
+5. Create a table of results to compare your **linear** models using AIC, BIC, and adjusted R-squared. Include the degrees of freedom of each model in the table so that you can consider parsimony in your final decision. Based on this table choose the best model and explain why this was your choice.
+
+6. What does your best model predict Ozone to be on July 1st when the Solar R is 200 Langleys, Wind is 9 mph, and Temperature is 84 degrees F? *Hint: if you used a transformation in your model either back transform or report the results with the transformation*  
+
+
+### Appendix: using stepwise model selection (optional!)
+
+Model selection is a very complex problem for statisticians, and we have just scratched the surface here. There are many other ways to choose appropriate combinations of predictor variables. One example is stepwise model selection. This process starts with a 'full model' (including all possible predictors) and eliminates variables one by one, calculating AIC each time. When the AIC can't be reduced any more by taking away variables or putting them back, you have the final optimized model. You can try stepwise AIC in R:
+
+```{r, message=FALSE}
+library(MASS)
+# ?stepAIC
+
+fullmodel <- lm(Ozone ~ Solar.R + Wind + Temp + Month + Day, data = airquality)
+nullmodel <- lm(Ozone ~ 1, data = airquality)
+
+stepAIC(fullmodel, scope = c(upper = fullmodel, lower = nullmodel), direction = "both")
+```
+
+How does including interactions affect this process? Do you get similar results from the automated selection as you did in the homework by using your biological intuition and comparing models by hand?
+
+### Appendix: ozone in the news
+https://www.npr.org/sections/health-shots/2020/05/19/854760999/traffic-is-way-down-due-to-lockdowns-but-air-pollution-not-so-much

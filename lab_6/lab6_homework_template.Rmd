@@ -1,0 +1,179 @@
+---
+title: "Lab 6 Homework"
+author:
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## library packages
+
+```
+
+```{r, message=FALSE}
+## load the datasets
+
+
+## HINT: CHECK THE COL NAMES OF THE DATASETS AND UPDATE THEM AS NEEDED
+```
+
+
+## Question 1  
+
+The pollen of the corn (maize) plant is known to be a source of food to larval mosquitoes of the species *Anopheles arabiensis*, the main vector of malaria in Ethiopia. The production of maize has increased substantially in certain areas of Ethiopia recently, and over the same time malaria has entered in to new areas where it was previously rare. This raises the question, is the increase of maize cultivation partly responsible for the increase in malaria? One line of evidence is to look for a geographical association on a smaller spatial scale between maize production and malaria incidence. The data set **malaria_vs_maize.csv** contains information on several high-altitude sites in Ethiopia, with information about the level of cultivation of maize (low, medium or high) and the rate of malaria per 10,000 people. Use an ANOVA to test *whether there is a difference in the mean number of malaria cases between the three levels of cultivation*.
+
+(A) Clearly state your **null and alternative hypotheses**  
+
+`null:  `\
+`alternative: `
+
+(B) Make a **box plot** of the data. How many levels are we testing?    
+
+```{r}
+## make a boxplot 
+
+
+```
+
+`answer: `
+
+(C) Test the **assumptions of normality and homogeneity of variance** using the diagnostic plots (i.e. the residual plot and the qqPlot) and tests (i.e. Shapiro-Wilk test and Levene's test) of the **residuals**. Based on these tests, what do you conclude about your normality and homogeneity of variance assumptions?   
+```{r}
+## run anova to get the residuals
+## HINT aov(Y ~ x)
+
+## look at the residual plots
+## HINT THERE ARE 4 PLOTS THAT SHOULD BE IN 1 FIGURE (par(mfrow=c(rows, cols)))
+
+## qqPlot (HINT: if it't tiny you might need to reset the plotting area with par)
+
+## test normality
+
+## test equal variance
+
+```
+
+`answer: `
+
+(D) If your assumptions are not met try **transforming** `malaria_cases_per_1000`. After your transformation, **retest your assumptions using the transformed data** with the diagnostic plots (i.e. the residual plot and the qqplot) and tests (i.e. Shapiro-Wilk test and Levene's Test) of the **residuals**. Find a transformation that allows for both assumptions to be met. Just report this transformation (you can comment out `#` the code testing the other transformations).  
+```{r}
+## your code to try transformation and check they are normal and with equal variance
+
+
+```
+
+`answer: `
+
+(E) Look at the **ANOVA table** of your chosen transformation from part D. Using the ANOVA table, conclude whether the level of cultivation significantly affects the number of malaria cases. You do not need to do any pairwise comparisons for this exercise.    
+```{r}
+## get the ANOVA table (HINT: summary())
+
+```
+
+`answer: `
+
+## Question 2  
+
+The European cuckoo does not look after its own eggs, but instead lays them in the nests of birds of other species. Cuckoos sometimes have evolved to lay eggs that are colored similarly to the host birds' eggs. You want to know if cuckoos also lay similar sized eggs to the host birds' eggs. The data file **cuckooeggs.csv** contains data on the lengths of cuckoo eggs laid in a variety of other species' nests.Use an ANOVA to test for *a difference in cuckoo egg size for different host species*. 
+
+(A) Clearly state your **null and alternative hypotheses**   
+
+`null: `\
+`alternative: `
+
+(B) Make a **box plot** of the data. How many levels (groups) are we testing? 
+```{r}
+## make a boxplot 
+
+
+```
+
+`answer: `
+  
+(C) Test the **assumptions of normality and homogeneity of variance** using the diagnostic plots (i.e. the residual plot and the qqPlot) and tests (i.e. Shapiro-Wilk test and Levene's test) of the **residuals**. Based on these tests, what do you conclude about your normality and homogeneity of variance assumptions?  
+```{r}
+## run anova to get the residuals
+## HINT aov(Y ~ x)
+
+## look at the residual plots
+## HINT THERE ARE 4 PLOTS THAT SHOULD BE IN 1 FIGURE (par(mfrow=c(rows, cols)))
+
+## qqPlot (HINT: if it't tiny you might need to reset the plotting area with par)
+
+## test normality
+
+## test equal variance
+
+```
+
+`answer: `
+
+(D) If your assumptions are not met try a transformation (same procedure as question 1). Otherwise, proceed with your analysis. 
+
+```{r}
+## transformation (if needed)
+
+```
+
+`answer: `
+
+(E) Look at the **ANOVA table** of your chosen transformation from part D. Using the ANOVA table, conclude whether cuckoos lay different size eggs in different bird nests.  
+```{r}
+## get the ANOVA table (HINT: summary())
+
+```
+
+`answer: `
+
+(F) Perform a **TukeyHSD post-hoc test**. For what bird species does the cuckoo lay the significantly smallest eggs? 
+```{r}
+## post hoc test: TukeyHSD
+
+```
+
+`answer: `
+
+## Question 3  
+
+For this exercise we are going to use a run some code that is saved in an R script in your data file called `power_anova.R`. Each time we want to use this code we will run the line "source("power_anova.R")" which tells R to run everything in this script. **Make sure the `power_anova.R` is in your .Rproj folder**. If you have trouble getting the code to run, you can open the script separately and just write your answers below. You will be graded based on your written answers not the plot that appears.
+
+You are interested in testing the efficacy of different "at-home remedies" as hangover cures. After testing many different home remedies, you believe that pickle juice is an effective hangover cure. You want to compare its effectiveness of curing hangovers to a control (nothing consumed). You measure effectiveness by the amount of time it takes for someone's head ache, sensitivity to bright light, and feelings of nausea to dissipate after taking one of the given treatments. You determined that this response variable was normally distributed and you want to run a one-way ANOVA. Your factor is home remedy and your levels are nothing, water, and pickle juice.
+
+Based on some preliminary data you collected on a Saturday morning in IV, you suspect that the mean hangover recovery time after drinking pickle juice is around 124 minutes and the mean recovery time after not drinking anything is 180 minutes. Moreover, your preliminary analysis allowed you to estimate the standard deviation for each of these treatments as approximately 90 minutes.
+
+(A) In 2 - 3 sentence, discuss two factors that could bias your experiment   
+
+`answer: `
+
+(B) Use a power analysis to determine *how many students you will need to sample* (for each level) to detect a *significant effect of pickle juice as a hangover cure* (given that one exists). To start with assign the values above to objects in R (copy and paste this code exactly into your homework). Then, using the plot that appears, determine approximately how many students you will need in each group to have a power of 0.8.
+```{r, include=FALSE}
+PICKLEMEAN = 124 # in minutes
+NOTHINGMEAN = 180 # in minutes
+STD = 90 # in minutes
+
+max.students = 50 # Max number of students in each group (balanced design)
+students = c(2:max.students)
+alpha = 0.05 # Type I Error rate
+
+nsim = 100 # Number of simulations
+
+## power analysis
+## run this line to get a plot of students in each group vs power
+source("power_anova.R")
+```
+
+`answer: `
+
+(C)  A friend of yours has collected some additional data and suggests that the standard deviation of your three treatments is closer to 70 minutes. In the the chunk of code from above, *change the variable STD to 70 minutes* and determine how many students you would need to sample.  
+
+`answer: `
+
+(D) Finally, you stumble upon a jar of Kirkland pickle juice and some preliminary tests show you that it might drop your the approximate mean hangover recovery time to 74 minutes. With this new information, and with STD=70, *change PICKLEMEAN to 74* and re-run your power analysis. How many students do you need to sample now in order for your test to have a power of 0.8?  
+
+`answer: `
+
+(E) In one 1 to 2 sentences, draw some general conclusions on how the variance of your populations and the difference between your maximum and minimum mean of your levels influence the power of the ANOVA.  
+
+`answer: `
